@@ -9,16 +9,13 @@ defmodule Commanded.EventStore.Adapters.EventStore do
   alias Commanded.EventStore.{EventData, RecordedEvent, SnapshotData}
 
   @spec append_to_stream(String.t(), non_neg_integer, list(EventData.t())) ::
-          {:ok, non_neg_integer} | {:error, reason :: term}
+          :ok | {:error, reason :: term}
   def append_to_stream(stream_uuid, expected_version, events) do
-    case EventStore.append_to_stream(
-           stream_uuid,
-           expected_version,
-           Enum.map(events, &to_event_data(&1))
-         ) do
-      :ok -> {:ok, expected_version + length(events)}
-      err -> err
-    end
+    EventStore.append_to_stream(
+      stream_uuid,
+      expected_version,
+      Enum.map(events, &to_event_data(&1))
+    )
   end
 
   @spec stream_forward(String.t(), non_neg_integer, non_neg_integer) ::
@@ -37,14 +34,22 @@ defmodule Commanded.EventStore.Adapters.EventStore do
     EventStore.subscribe(stream_uuid, mapper: &from_recorded_event/1)
   end
 
-  @spec subscribe_to_all_streams(String.t(), pid, :origin | :current | integer) ::
+  @spec subscribe_to(String.t() | :all, String.t(), pid, :origin | :current | integer) ::
           {:ok, subscription :: any}
           | {:error, :subscription_already_exists}
           | {:error, reason :: term}
-  def subscribe_to_all_streams(subscription_name, subscriber, start_from \\ :origin)
-
-  def subscribe_to_all_streams(subscription_name, subscriber, start_from) do
+  def subscribe_to(:all, subscription_name, subscriber, start_from) do
     EventStore.subscribe_to_all_streams(
+      subscription_name,
+      subscriber,
+      start_from: start_from,
+      mapper: &from_recorded_event/1
+    )
+  end
+
+  def subscribe_to(stream_uuid, subscription_name, subscriber, start_from) do
+    EventStore.subscribe_to_stream(
+      stream_uuid,
       subscription_name,
       subscriber,
       start_from: start_from,
@@ -57,8 +62,8 @@ defmodule Commanded.EventStore.Adapters.EventStore do
     EventStore.ack(subscription, event_number)
   end
 
-  @spec unsubscribe_from_all_streams(String.t()) :: :ok
-  def unsubscribe_from_all_streams(subscription_name) do
+  @spec unsubscribe(String.t()) :: :ok
+  def unsubscribe(subscription_name) do
     EventStore.unsubscribe_from_all_streams(subscription_name)
   end
 

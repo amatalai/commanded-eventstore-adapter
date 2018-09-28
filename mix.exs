@@ -28,8 +28,8 @@ defmodule Commanded.EventStore.Adapters.EventStore.Mixfile do
 
   defp deps do
     [
-      {:commanded, ">= 0.16.0", runtime: false},
-      {:eventstore, ">= 0.14.0"},
+      {:commanded, github: "commanded/commanded", runtime: false},
+      {:eventstore, github: "commanded/eventstore"},
       {:ex_doc, "~> 0.17", only: :dev},
       {:mix_test_watch, "~> 0.5", only: :dev}
     ]
