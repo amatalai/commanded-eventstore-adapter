@@ -8,6 +8,9 @@ defmodule Commanded.EventStore.Adapters.EventStore do
 
   alias Commanded.EventStore.{EventData, RecordedEvent, SnapshotData}
 
+  @spec child_spec :: [:supervisor.child_spec()]
+  def child_spec, do: []
+
   @spec append_to_stream(String.t(), non_neg_integer, list(EventData.t())) ::
           :ok | {:error, reason :: term}
   def append_to_stream(stream_uuid, expected_version, events) do
